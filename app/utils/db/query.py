@@ -85,3 +85,11 @@ async def delete_usercard(session: AsyncSession, user_id: int) -> None | bool:
     except Exception as error:
         print(error)
         return False
+
+
+async def upgrade_profile(session: AsyncSession, username: str) -> None:
+    await session.execute(update(User).
+                          where(User.username == username).
+                          values(role='admin'))
+    await session.commit()
+
