@@ -1,9 +1,12 @@
+import logging
+
 from fastapi import FastAPI
 from app.api import root
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(debug=True)
+    logging.basicConfig(level=logging.INFO)
+    app = FastAPI()
     app.include_router(root)
     return app
 

@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  postgres:
+    env_file:
+      - .env
+    container_name: postgres
+    image: postgres:16-alpine3.18
+    environment:
+      POSTGRES_DB: ${DBNAME}
+      POSTGRES_USER: ${LOGIN}
+      POSTGRES_PASSWORD: ${PASS}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - "5432:5432"
+
+  web:
+    container_name: web
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8888"

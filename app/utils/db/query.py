@@ -1,19 +1,20 @@
+import logging
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.utils.models import UserCard
-
+from sqlalchemy.exc import SQLAlchemyError
 from .tables import User, PhoneBook as PB
 
 
 async def create_user(session: AsyncSession, user: str, password: str) -> bool:
     try:
+        logging.info("Create user")
         user = User(username=user, password=password)
         session.add(user)
         await session.commit()
         return True
-    except Exception as error:
-        print(error)
+    except SQLAlchemyError:
+        logging.exception("Error", exc_info=True)
         await session.rollback()
         return False
 
@@ -22,7 +23,8 @@ async def get_user(session: AsyncSession, username: str) -> User | bool:
     try:
         result = await session.execute(select(User.username, User.password, User.role).where(User.username == username))
         return result.fetchall()
-    except Exception:
+    except SQLAlchemyError:
+        logging.exception("Error", exc_info=True)
         return False
 
 
@@ -45,18 +47,21 @@ async def add_usercard(session: AsyncSession, **kwargs) -> dict | bool:
                     "birthday": usercard.birthday
                 }}
 
-    except Exception as error:
-        print(error)
+
+    except SQLAlchemyError:
+        logging.exception("Error", exc_info=True)
         await session.rollback()
         return False
 
 
 
-async def search_usercard(session: AsyncSession, name: str) -> list[UserCard]:
+async def search_usercard(session: AsyncSession, name: str) -> bool | list[UserCard]:
     all_users = await session.execute(select(PB.id, PB.name,
                                              PB.phone, PB.job_title,
                                              PB.birthday).where(PB.name == name))
     result = all_users.fetchall()
+    if not result:
+        return False
     return [UserCard(**user._mapping) for user in result]
 
 
@@ -73,8 +78,9 @@ async def update_usercard(session: AsyncSession, user_id: int, **kwargs) -> bool
                               values(**new_info))
         await session.commit()
         return True
-    except Exception as error:
-        print(error)
+    except SQLAlchemyError:
+        logging.exception("Error", exc_info=True)
+        await session.rollback()
         return False
 
 
@@ -82,14 +88,19 @@ async def delete_usercard(session: AsyncSession, user_id: int) -> None | bool:
     try:
         await session.execute(delete(PB).where(PB.id == user_id))
         await session.commit()
-    except Exception as error:
-        print(error)
+    except SQLAlchemyError:
+        logging.exception("Error", exc_info=True)
+        await session.rollback()
         return False
 
 
 async def upgrade_profile(session: AsyncSession, username: str) -> None:
-    await session.execute(update(User).
+    try:
+        await session.execute(update(User).
                           where(User.username == username).
                           values(role='admin'))
-    await session.commit()
-
+        await session.commit()
+    except SQLAlchemyError:
+        logging.exception("Error", exc_info=True)
+        await session.rollback()
+        return False

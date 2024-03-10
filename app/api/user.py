@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,11 +21,13 @@ async def user_information(current_user: CurrentUser = Depends(get_current_user)
 @user.get('/user', dependencies=[Depends(get_current_user)])
 async def get_user(name: str, session: AsyncSession = Depends(get_session)) -> dict:
     response: list[UserCard] = await search_usercard(session, name)
+    if not response:
+        return {"msg": "user not found"}
     return {"items": response}
 
 
 @user.post('/upgrade_profile')
 async def upgrade_user_profile(code: str = Body(), current_user: CurrentUser = Depends(get_current_user),
                           session: AsyncSession = Depends(get_session)):
-    if code == 'ANDREY_LOH':
+    if code == os.environ.get("CODE"):
         await upgrade_profile(session, current_user.username)

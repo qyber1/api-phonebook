@@ -23,7 +23,7 @@ async def create_user_card(user: Create, session: AsyncSession = Depends(get_ses
 
 
 @admin.patch('/user')
-async def update_user_card(user: Update, session: AsyncSession = Depends(get_session)):
+async def update_user_card(user: Update, session: AsyncSession = Depends(get_session)) -> dict:
     """
     Параметры при запросе в поле fields вводятся в виде ключ-значение:\n
         name: ФИО человека в карточке
@@ -38,7 +38,7 @@ async def update_user_card(user: Update, session: AsyncSession = Depends(get_ses
 
 
 @admin.delete('/user')
-async def delete_user_card(user_id: Delete,  session: AsyncSession = Depends(get_session)):
+async def delete_user_card(user_id: Delete,  session: AsyncSession = Depends(get_session)) -> dict:
     response = await delete_usercard(session, user_id)
     if not response:
         raise HTTPException(status_code=400, detail='Invalid ID')

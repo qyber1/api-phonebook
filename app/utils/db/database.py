@@ -8,11 +8,6 @@ URL = get_config()
 engine = create_async_engine(URL, echo=True, future=True)
 
 
-async def init_db(engine: AsyncEngine = engine, metadata=BaseModel.metadata):
-    async with engine.begin() as session:
-        await session.run_sync(metadata.create_all)
-
-
 async def get_session() -> AsyncSession:
     async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=True)
     async with async_session() as session:

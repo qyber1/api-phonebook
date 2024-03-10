@@ -16,7 +16,7 @@ auth = APIRouter()
 
 
 @auth.post('/register')
-async def registration_user(user: RegistrationForm, session: AsyncSession = Depends(get_session)):
+async def registration_user(user: RegistrationForm, session: AsyncSession = Depends(get_session)) -> dict:
     hashed_password = PasswordManager.hash(user.password)
     flag = await create_user(session, user.username, hashed_password)
     if flag:

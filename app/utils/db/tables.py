@@ -22,16 +22,6 @@ class PhoneBook(BaseModel):
     job_title: Mapped[str] = mapped_column(String(60))
     birthday: Mapped[datetime.date] = mapped_column(Date)
 
-    @property
-    def serialize(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "phone": self.phone,
-            "job_title": self.job_title,
-            "birthday": self.birthday
-        }
-
 
 class User(BaseModel):
     __tablename__ = 'User'
